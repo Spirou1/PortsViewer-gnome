@@ -4,23 +4,37 @@ import GLib from "gi://GLib";
 const EXCLUDED_PORTS = [5353, 631, 53];
 let _uidMap = null;
 
-function getUidMap() {
+export function exportClearCache() {
+  _uidMap = null;
+}
+
+async function getUidMap() {
   if (_uidMap) return _uidMap;
   _uidMap = {};
   try {
-    let [ok, content] = GLib.file_get_contents("/etc/passwd");
-    if (ok) {
-      let text = new TextDecoder().decode(content);
-      text.split("\n").forEach((line) => {
-        let parts = line.split(":");
-        if (parts.length >= 3) _uidMap[parts[2]] = parts[0];
+    let file = Gio.File.new_for_path("/etc/passwd");
+    return new Promise((resolve) => {
+      file.load_contents_async(null, (file, res) => {
+        try {
+          let [ok, content] = file.load_contents_finish(res);
+          if (ok) {
+            let text = new TextDecoder().decode(content);
+            text.split("\n").forEach((line) => {
+              let parts = line.split(":");
+              if (parts.length >= 3) _uidMap[parts[2]] = parts[0];
+            });
+          }
+        } catch (e) {}
+        resolve(_uidMap);
       });
-    }
-  } catch (e) {}
-  return _uidMap;
+    });
+  } catch (e) {
+    return _uidMap;
+  }
 }
 
 export async function getActiveDevPorts() {
+  const uidMap = await getUidMap();
   return new Promise((resolve) => {
     try {
       let proc = new Gio.Subprocess({
@@ -32,7 +46,7 @@ export async function getActiveDevPorts() {
       proc.communicate_utf8_async(null, null, (proc, res) => {
         try {
           let [, stdout] = proc.communicate_utf8_finish(res);
-          resolve(parseSsOutput(stdout || ""));
+          resolve(parseSsOutput(stdout || "", uidMap));
         } catch (e) {
           resolve([]);
         }
@@ -43,12 +57,11 @@ export async function getActiveDevPorts() {
   });
 }
 
-function parseSsOutput(output) {
+function parseSsOutput(output, uidMap) {
   if (!output) return [];
   let lines = output.trim().split("\n");
   let activePorts = [];
   let seenPorts = new Set();
-  let uidMap = getUidMap();
 
   for (let line of lines) {
     line = line.trim();

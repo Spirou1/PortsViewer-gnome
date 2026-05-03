@@ -9,7 +9,7 @@ import * as PanelMenu from "resource:///org/gnome/shell/ui/panelMenu.js";
 import * as PopupMenu from "resource:///org/gnome/shell/ui/popupMenu.js";
 import * as Main from "resource:///org/gnome/shell/ui/main.js";
 
-import { getActiveDevPorts } from "./scanner.js";
+import { getActiveDevPorts, exportClearCache } from "./scanner.js";
 
 const PortsIndicator = GObject.registerClass(
   class PortsIndicator extends PanelMenu.Button {
@@ -152,5 +152,6 @@ export default class PortsViewerExtension extends Extension {
       this._indicator.destroy();
       this._indicator = null;
     }
+    exportClearCache();
   }
 }
