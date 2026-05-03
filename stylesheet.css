@@ -4,3 +4,45 @@
     color: #42f5d1;
     font-weight: bold;
 }
+
+.port-header-label {
+    font-size: 0.75em;
+    font-weight: bold;
+    color: #aaa;
+    text-transform: uppercase;
+}
+
+.port-pid-value {
+    color: #888;
+}
+
+.port-process-label {
+    color: #eee;
+}
+
+.port-access-column {
+    margin-left: 30px;
+}
+
+.port-label-local {
+    color: #888;
+    font-size: 0.85em;
+}
+
+.port-label-public {
+    color: #f5a642;
+    font-weight: bold;
+    font-size: 0.85em;
+}
+
+.status-icon-local {
+    icon-size: 14px;
+    color: #888;
+    margin-right: 5px;
+}
+
+.status-icon-public {
+    icon-size: 14px;
+    color: #f5a642;
+    margin-right: 5px;
+}

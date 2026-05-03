@@ -1,21 +1,4 @@
-/* extension.js
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * SPDX-License-Identifier: GPL-2.0-or-later
- */
-
+/* extension.js */
 import GObject from 'gi://GObject';
 import St from 'gi://St';
 import Clutter from 'gi://Clutter';
@@ -34,7 +17,6 @@ class PortsIndicator extends PanelMenu.Button {
         super._init(0.0, 'Ports Viewer Indicator');
 
         let topBox = new St.BoxLayout({ style_class: 'panel-status-menu-box' });
-        
         let icon = new St.Icon({
             icon_name: 'network-workgroup-symbolic',
             style_class: 'system-status-icon',
@@ -52,14 +34,11 @@ class PortsIndicator extends PanelMenu.Button {
 
         this.visible = false;
 
-        this._titleItem = new PopupMenu.PopupSeparatorMenuItem('Portas Abertas');
-        this.menu.addMenuItem(this._titleItem);
-
         this._portsSection = new PopupMenu.PopupMenuSection();
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem('Open Ports'));
         this.menu.addMenuItem(this._portsSection);
 
         this._isScanning = false;
-        
         this._timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
             this._syncPorts();
             return GLib.SOURCE_CONTINUE;
@@ -73,31 +52,46 @@ class PortsIndicator extends PanelMenu.Button {
         this._isScanning = true;
 
         let ports = await getActiveDevPorts();
-
-        if (ports.length > 0) {
-            this._topLabel.text = `Active Ports: ${ports.length}`;
-            this.visible = true;
-        } else {
-            this.visible = false;
-        }
+        this._topLabel.text = `Active Ports: ${ports.length}`;
+        this.visible = ports.length > 0;
 
         this._portsSection.removeAll();
+
+        let header = new PopupMenu.PopupBaseMenuItem({ activate: false, reactive: false });
+
+        let hPort = new St.Label({ text: 'PORT', style_class: 'port-header-label' });
+        hPort.set_width(55);
+        let hPid = new St.Label({ text: 'PID', style_class: 'port-header-label' });
+        hPid.set_width(65);
+        let hProc = new St.Label({ text: 'SERVICE', style_class: 'port-header-label', x_expand: true });
+        let hAcc = new St.Label({ text: 'ACCESS', style_class: 'port-header-label port-access-column' });
+
+        header.add_child(hPort);
+        header.add_child(hPid);
+        header.add_child(hProc);
+        header.add_child(hAcc);
+        this._portsSection.addMenuItem(header);
+
         for (let p of ports) {
-            let item = new PopupMenu.PopupBaseMenuItem();
-            
-            let portLabel = new St.Label({
-                text: `${p.port}`,
-                style_class: 'port-number-highlight',
-                y_align: Clutter.ActorAlign.CENTER
+            let item = new PopupMenu.PopupBaseMenuItem({ activate: false });
+
+            let portLabel = new St.Label({ text: `${p.port}`, style_class: 'port-number-highlight' });
+            portLabel.set_width(55);
+
+            let pidLabel = new St.Label({ text: `${p.pid}`, style_class: 'port-pid-value' });
+            pidLabel.set_width(65);
+
+            let processLabel = new St.Label({ text: `${p.process}`, style_class: 'port-process-label', x_expand: true });
+
+            let statusLabel = new St.Label({
+                text: p.localOnly ? 'Local' : 'Public',
+                style_class: (p.localOnly ? 'port-label-local' : 'port-label-public') + ' port-access-column'
             });
-            
-            let processLabel = new St.Label({
-                text: `  —  ${p.process}`,
-                y_align: Clutter.ActorAlign.CENTER
-            });
-            
+
             item.add_child(portLabel);
+            item.add_child(pidLabel);
             item.add_child(processLabel);
+            item.add_child(statusLabel);
 
             this._portsSection.addMenuItem(item);
         }
