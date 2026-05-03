@@ -1,0 +1,8 @@
+{
+  "name": "Ports Monitor",
+  "description": "Simple extension that let's the user see which ports are being used",
+  "uuid": "portsviewer@enzospironelli.com.br",
+  "shell-version": [
+    "50"
+  ]
+}
