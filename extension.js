@@ -3,6 +3,7 @@ import GObject from "gi://GObject";
 import St from "gi://St";
 import Clutter from "gi://Clutter";
 import GLib from "gi://GLib";
+import Gio from "gi://Gio";
 
 import { Extension } from "resource:///org/gnome/shell/extensions/extension.js";
 import * as PanelMenu from "resource:///org/gnome/shell/ui/panelMenu.js";
@@ -39,6 +40,7 @@ const PortsIndicator = GObject.registerClass(
       this.menu.addMenuItem(this._portsSection);
 
       this._isScanning = false;
+      this._cancellable = null;
       this._timeoutId = GLib.timeout_add_seconds(
         GLib.PRIORITY_DEFAULT,
         5,
@@ -54,8 +56,21 @@ const PortsIndicator = GObject.registerClass(
     async _syncPorts() {
       if (this._isScanning) return;
       this._isScanning = true;
+      this._cancellable = new Gio.Cancellable();
 
-      let ports = await getActiveDevPorts();
+      let ports = [];
+      try {
+        ports = await getActiveDevPorts(this._cancellable);
+      } catch (e) {
+        // Ignorar erros caso tenha sido cancelado ou falhado
+      }
+
+      if (this._cancellable.is_cancelled()) {
+        this._isScanning = false;
+        this._cancellable = null;
+        return;
+      }
+
       this._topLabel.text = `Active Ports: ${ports.length}`;
       this.visible = ports.length > 0;
 
@@ -129,12 +144,17 @@ const PortsIndicator = GObject.registerClass(
       }
 
       this._isScanning = false;
+      this._cancellable = null;
     }
 
     destroy() {
       if (this._timeoutId) {
         GLib.Source.remove(this._timeoutId);
         this._timeoutId = null;
+      }
+      if (this._cancellable) {
+        this._cancellable.cancel();
+        this._cancellable = null;
       }
       super.destroy();
     }

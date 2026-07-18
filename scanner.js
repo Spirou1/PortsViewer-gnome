@@ -33,7 +33,7 @@ async function getUidMap() {
   }
 }
 
-export async function getActiveDevPorts() {
+export async function getActiveDevPorts(cancellable = null) {
   const uidMap = await getUidMap();
   return new Promise((resolve) => {
     try {
@@ -42,8 +42,21 @@ export async function getActiveDevPorts() {
         flags:
           Gio.SubprocessFlags.STDOUT_PIPE | Gio.SubprocessFlags.STDERR_PIPE,
       });
-      proc.init(null);
-      proc.communicate_utf8_async(null, null, (proc, res) => {
+      proc.init(cancellable);
+
+      let signalId = 0;
+      if (cancellable) {
+        signalId = cancellable.connect(() => {
+          try {
+            proc.force_exit();
+          } catch (e) {}
+        });
+      }
+
+      proc.communicate_utf8_async(null, cancellable, (proc, res) => {
+        if (cancellable && signalId > 0) {
+          cancellable.disconnect(signalId);
+        }
         try {
           let [, stdout] = proc.communicate_utf8_finish(res);
           resolve(parseSsOutput(stdout || "", uidMap));
