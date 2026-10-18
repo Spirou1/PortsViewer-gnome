@@ -2,6 +2,7 @@
   "name": "Ports Monitor",
   "description": "Simple extension that lets the user see which ports are being used",
   "uuid": "portsviewer@enzospironelli.com.br",
+  "url": "https://github.com/Spirou1/PortsViewer-gnome",
   "shell-version": [
     "45",
     "46",

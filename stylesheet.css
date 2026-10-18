@@ -35,14 +35,8 @@
     font-size: 0.85em;
 }
 
-.status-icon-local {
-    icon-size: 14px;
+.copy-feedback-label {
     color: #888;
-    margin-right: 5px;
-}
-
-.status-icon-public {
-    icon-size: 14px;
-    color: #f5a642;
-    margin-right: 5px;
+    font-size: 0.85em;
+    padding: 4px 0px;
 }

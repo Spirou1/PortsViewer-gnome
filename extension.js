@@ -24,7 +24,7 @@ const PortsIndicator = GObject.registerClass(
       });
 
       this._topLabel = new St.Label({
-        text: "Active Ports: 0",
+        text: "Ports: 0",
         y_align: Clutter.ActorAlign.CENTER,
         margin_left: 6,
       });
@@ -71,10 +71,11 @@ const PortsIndicator = GObject.registerClass(
         return;
       }
 
-      this._topLabel.text = `Active Ports: ${ports.length}`;
+      this._topLabel.text = `Ports: ${ports.length}`;
       this.visible = ports.length > 0;
 
       this._portsSection.removeAll();
+      this._feedbackItem = null;
 
       let header = new PopupMenu.PopupBaseMenuItem({
         activate: false,
@@ -140,11 +141,39 @@ const PortsIndicator = GObject.registerClass(
         item.add_child(processLabel);
         item.add_child(statusLabel);
 
+        item.connect("button-release-event", () => {
+          this._copyPid(p.pid);
+          return Clutter.EVENT_STOP;
+        });
+
         this._portsSection.addMenuItem(item);
       }
 
       this._isScanning = false;
       this._cancellable = null;
+    }
+
+    _copyPid(pid) {
+      St.Clipboard.get_default().set_text(
+        St.ClipboardType.CLIPBOARD,
+        pid.toString(),
+      );
+
+      if (this._feedbackItem) {
+        this._feedbackItem.destroy();
+        this._feedbackItem = null;
+      }
+
+      this._feedbackItem = new PopupMenu.PopupBaseMenuItem({
+        activate: false,
+        reactive: false,
+      });
+      let label = new St.Label({
+        text: `✓ PID ${pid} copied`,
+        style_class: "copy-feedback-label",
+      });
+      this._feedbackItem.add_child(label);
+      this._portsSection.addMenuItem(this._feedbackItem);
     }
 
     destroy() {
