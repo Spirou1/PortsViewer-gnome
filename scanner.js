@@ -70,6 +70,15 @@ export async function getActiveDevPorts(cancellable = null) {
   });
 }
 
+function normalizeAddress(rawAddress) {
+  let address = rawAddress.replace(/:\d+$/, "");
+  if (address.startsWith("[") && address.endsWith("]"))
+    address = address.slice(1, -1);
+  let mapped = address.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/i);
+  if (mapped) return mapped[1];
+  return address;
+}
+
 function parseSsOutput(output, uidMap) {
   if (!output) return [];
   let lines = output.trim().split("\n");
@@ -88,6 +97,7 @@ function parseSsOutput(output, uidMap) {
     if (!portMatch) continue;
 
     let port = parseInt(portMatch[1], 10);
+    let address = normalizeAddress(localAddress);
     if (EXCLUDED_PORTS.includes(port) || seenPorts.has(port)) continue;
 
     let processName = "Unknown";
@@ -120,16 +130,20 @@ function parseSsOutput(output, uidMap) {
       processName = "Docker";
     }
 
+    let uidMatch = line.match(/uid:(\d+)/);
+    let user = uidMatch ? uidMap[uidMatch[1]] || uidMatch[1] : "-";
+
     let isLocal =
-      localAddress.startsWith("127.") ||
-      localAddress.startsWith("[::1]") ||
-      localAddress.startsWith("localhost");
+      address.startsWith("127.") ||
+      address === "::1" ||
+      address === "localhost";
 
     seenPorts.add(port);
     activePorts.push({
       port: port,
       process: processName,
       pid: pid,
+      user: user,
       localOnly: isLocal,
     });
   }

@@ -93,24 +93,22 @@ const PortsIndicator = GObject.registerClass(
         text: "PID",
         style_class: "port-header-label",
       });
-      hPid.set_width(65);
+      let hPidBox = new St.BoxLayout({ style_class: "port-pid-box" });
+      hPidBox.add_child(hPid);
       let hProc = new St.Label({
         text: "SERVICE",
-        style_class: "port-header-label",
+        style_class: "port-header-label port-service-column",
         x_expand: true,
       });
       let hAcc = new St.Label({
-        text: "ACCESS",
+        text: "USER",
         style_class: "port-header-label port-access-column",
       });
 
       header.add_child(hPort);
-      header.add_child(hPid);
+      header.add_child(hPidBox);
       header.add_child(hProc);
       header.add_child(hAcc);
-      header.add_child(
-        new St.Widget({ style_class: "port-copy-spacer" }),
-      );
       this._portsSection.addMenuItem(header);
 
       for (let p of ports) {
@@ -126,16 +124,15 @@ const PortsIndicator = GObject.registerClass(
           text: `${p.pid}`,
           style_class: "port-pid-value",
         });
-        pidLabel.set_width(65);
 
         let processLabel = new St.Label({
           text: `${p.process}`,
-          style_class: "port-process-label",
+          style_class: "port-process-label port-service-column",
           x_expand: true,
         });
 
         let statusLabel = new St.Label({
-          text: p.localOnly ? "Local" : "Public",
+          text: p.user,
           style_class:
             (p.localOnly ? "port-label-local" : "port-label-public") +
             " port-access-column",
@@ -153,11 +150,14 @@ const PortsIndicator = GObject.registerClass(
           return Clutter.EVENT_STOP;
         });
 
+        let pidBox = new St.BoxLayout({ style_class: "port-pid-box" });
+        pidBox.add_child(pidLabel);
+        pidBox.add_child(copyIcon);
+
         item.add_child(portLabel);
-        item.add_child(pidLabel);
+        item.add_child(pidBox);
         item.add_child(processLabel);
         item.add_child(statusLabel);
-        item.add_child(copyIcon);
 
         this._portsSection.addMenuItem(item);
       }
