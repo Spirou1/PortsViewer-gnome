@@ -56,20 +56,22 @@ const PortsIndicator = GObject.registerClass(
     async _syncPorts() {
       if (this._isScanning) return;
       this._isScanning = true;
-      this._cancellable = new Gio.Cancellable();
+
+      const cancellable = (this._cancellable = new Gio.Cancellable());
 
       let ports = [];
       try {
-        ports = await getActiveDevPorts(this._cancellable);
+        ports = await getActiveDevPorts(cancellable);
       } catch (e) {
-        // Ignorar erros caso tenha sido cancelado ou falhado
+        
       }
 
-      if (this._cancellable.is_cancelled()) {
-        this._isScanning = false;
-        this._cancellable = null;
+      this._isScanning = false;
+
+      if (cancellable.is_cancelled() || this._cancellable !== cancellable)
         return;
-      }
+
+      this._cancellable = null;
 
       this._topLabel.text = `Ports: ${ports.length}`;
       this.visible = ports.length > 0;
@@ -148,9 +150,6 @@ const PortsIndicator = GObject.registerClass(
 
         this._portsSection.addMenuItem(item);
       }
-
-      this._isScanning = false;
-      this._cancellable = null;
     }
 
     _copyPid(pid) {
