@@ -40,3 +40,22 @@
     font-size: 0.85em;
     padding: 4px 0px;
 }
+
+.port-copy-icon {
+    color: #666;
+    padding: 3px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    margin-left: 12px;
+    cursor: pointer;
+}
+
+.port-copy-icon:hover {
+    color: #ccc;
+    border-color: #888;
+}
+
+.port-copy-spacer {
+    width: 20px;
+    margin-left: 12px;
+}

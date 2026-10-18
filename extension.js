@@ -108,6 +108,9 @@ const PortsIndicator = GObject.registerClass(
       header.add_child(hPid);
       header.add_child(hProc);
       header.add_child(hAcc);
+      header.add_child(
+        new St.Widget({ style_class: "port-copy-spacer" }),
+      );
       this._portsSection.addMenuItem(header);
 
       for (let p of ports) {
@@ -138,15 +141,23 @@ const PortsIndicator = GObject.registerClass(
             " port-access-column",
         });
 
+        let copyIcon = new St.Icon({
+          icon_name: "edit-copy-symbolic",
+          icon_size: 12,
+          style_class: "port-copy-icon",
+          reactive: true,
+          track_hover: true,
+        });
+        copyIcon.connect("button-release-event", () => {
+          this._copyPid(p.pid);
+          return Clutter.EVENT_STOP;
+        });
+
         item.add_child(portLabel);
         item.add_child(pidLabel);
         item.add_child(processLabel);
         item.add_child(statusLabel);
-
-        item.connect("button-release-event", () => {
-          this._copyPid(p.pid);
-          return Clutter.EVENT_STOP;
-        });
+        item.add_child(copyIcon);
 
         this._portsSection.addMenuItem(item);
       }
