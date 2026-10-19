@@ -1,10 +1,5 @@
 /* Add your custom extension styling here */
 
-.port-number-highlight {
-    color: #42f5d1;
-    font-weight: bold;
-}
-
 .port-header-label {
     font-size: 0.75em;
     font-weight: bold;
@@ -12,46 +7,54 @@
     text-transform: uppercase;
 }
 
+.port-menu-title {
+    font-size: 1.05em;
+    font-weight: bold;
+    color: #ddd;
+}
+
+.port-menu-line {
+    margin-left: 10px;
+}
+
+.port-column-gap {
+    margin-left: 20px;
+}
+
+.port-number-column {
+    min-width: 50px;
+}
+
+.port-number-value {
+    color: #42f5d1;
+    font-weight: bold;
+}
+
+.port-pid-column {
+    min-width: 86px;
+}
+
 .port-pid-value {
     color: #888;
     min-width: 54px;
 }
 
-.port-pid-box {
-    min-width: 90px;
-    margin-left: 16px;
-}
-
-.port-process-label {
+.port-service-value {
     color: #eee;
 }
 
-.port-access-column {
-    margin-left: 16px;
-}
-
-.port-label-local {
+.port-user-local {
     color: #888;
 }
 
-.port-label-public {
+.port-user-public {
     color: #f5a642;
     font-weight: bold;
 }
 
-.port-service-column {
-    margin-left: 16px;
-}
-
-.copy-feedback-label {
-    color: #888;
-    font-size: 0.85em;
-    padding: 4px 0px;
-}
-
 .port-copy-icon {
     color: #555;
-    padding: 4px;
+    padding: 5px;
     border: 1px solid transparent;
     border-radius: 999px;
     margin-left: 8px;
@@ -61,4 +64,10 @@
 .port-copy-icon:hover {
     color: #ccc;
     border-color: #777;
+}
+
+.port-copy-feedback {
+    color: #888;
+    font-size: 0.85em;
+    padding: 4px 0px;
 }

@@ -36,7 +36,10 @@ const PortsIndicator = GObject.registerClass(
       this.visible = false;
 
       this._portsSection = new PopupMenu.PopupMenuSection();
-      this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem("Open Ports"));
+      let title = new PopupMenu.PopupSeparatorMenuItem("Open Ports");
+      title.label.add_style_class_name("port-menu-title");
+      title._separator.add_style_class_name("port-menu-line");
+      this.menu.addMenuItem(title);
       this.menu.addMenuItem(this._portsSection);
 
       this._isScanning = false;
@@ -86,23 +89,24 @@ const PortsIndicator = GObject.registerClass(
 
       let hPort = new St.Label({
         text: "PORT",
-        style_class: "port-header-label",
+        style_class: "port-header-label port-number-column",
       });
-      hPort.set_width(55);
       let hPid = new St.Label({
         text: "PID",
         style_class: "port-header-label",
       });
-      let hPidBox = new St.BoxLayout({ style_class: "port-pid-box" });
+      let hPidBox = new St.BoxLayout({
+        style_class: "port-pid-column port-column-gap",
+      });
       hPidBox.add_child(hPid);
       let hProc = new St.Label({
         text: "SERVICE",
-        style_class: "port-header-label port-service-column",
+        style_class: "port-header-label port-column-gap",
         x_expand: true,
       });
       let hAcc = new St.Label({
         text: "USER",
-        style_class: "port-header-label port-access-column",
+        style_class: "port-header-label port-column-gap",
       });
 
       header.add_child(hPort);
@@ -116,9 +120,8 @@ const PortsIndicator = GObject.registerClass(
 
         let portLabel = new St.Label({
           text: `${p.port}`,
-          style_class: "port-number-highlight",
+          style_class: "port-number-value port-number-column",
         });
-        portLabel.set_width(55);
 
         let pidLabel = new St.Label({
           text: `${p.pid}`,
@@ -127,15 +130,15 @@ const PortsIndicator = GObject.registerClass(
 
         let processLabel = new St.Label({
           text: `${p.process}`,
-          style_class: "port-process-label port-service-column",
+          style_class: "port-service-value port-column-gap",
           x_expand: true,
         });
 
         let statusLabel = new St.Label({
           text: p.user,
           style_class:
-            (p.localOnly ? "port-label-local" : "port-label-public") +
-            " port-access-column",
+            (p.localOnly ? "port-user-local" : "port-user-public") +
+            " port-column-gap",
         });
 
         let copyIcon = new St.Icon({
@@ -150,7 +153,9 @@ const PortsIndicator = GObject.registerClass(
           return Clutter.EVENT_STOP;
         });
 
-        let pidBox = new St.BoxLayout({ style_class: "port-pid-box" });
+        let pidBox = new St.BoxLayout({
+          style_class: "port-pid-column port-column-gap",
+        });
         pidBox.add_child(pidLabel);
         pidBox.add_child(copyIcon);
 
@@ -180,7 +185,7 @@ const PortsIndicator = GObject.registerClass(
       });
       let label = new St.Label({
         text: `✓ PID ${pid} copied`,
-        style_class: "copy-feedback-label",
+        style_class: "port-copy-feedback",
       });
       this._feedbackItem.add_child(label);
       this._portsSection.addMenuItem(this._feedbackItem);

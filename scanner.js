@@ -33,8 +33,44 @@ async function getUidMap() {
   }
 }
 
+function loadText(path) {
+  return new Promise((resolve) => {
+    try {
+      let file = Gio.File.new_for_path(path);
+      file.load_contents_async(null, (file, res) => {
+        try {
+          let [ok, content] = file.load_contents_finish(res);
+          resolve(ok ? new TextDecoder().decode(content) : "");
+        } catch (e) {
+          resolve("");
+        }
+      });
+    } catch (e) {
+      resolve("");
+    }
+  });
+}
+
+async function getSocketUidByPort() {
+  let files = await Promise.all([
+    loadText("/proc/net/tcp"),
+    loadText("/proc/net/tcp6"),
+  ]);
+  let uidByPort = {};
+  for (let text of files) {
+    for (let line of text.split("\n").slice(1)) {
+      let parts = line.trim().split(/\s+/);
+      if (parts.length < 8 || parts[3] !== "0A") continue;
+      let portHex = parts[1].split(":")[1];
+      if (portHex) uidByPort[parseInt(portHex, 16)] = parts[7];
+    }
+  }
+  return uidByPort;
+}
+
 export async function getActiveDevPorts(cancellable = null) {
   const uidMap = await getUidMap();
+  const uidByPort = await getSocketUidByPort();
   return new Promise((resolve) => {
     try {
       let proc = new Gio.Subprocess({
@@ -59,7 +95,7 @@ export async function getActiveDevPorts(cancellable = null) {
         }
         try {
           let [, stdout] = proc.communicate_utf8_finish(res);
-          resolve(parseSsOutput(stdout || "", uidMap));
+          resolve(parseSsOutput(stdout || "", uidMap, uidByPort));
         } catch (e) {
           resolve([]);
         }
@@ -79,7 +115,7 @@ function normalizeAddress(rawAddress) {
   return address;
 }
 
-function parseSsOutput(output, uidMap) {
+function parseSsOutput(output, uidMap, uidByPort) {
   if (!output) return [];
   let lines = output.trim().split("\n");
   let activePorts = [];
@@ -108,21 +144,13 @@ function parseSsOutput(output, uidMap) {
       processName = usersMatch[1];
       pid = usersMatch[2];
     } else {
-      let cgroupMatch =
-        line.match(/cgroup:[^ ]+\/([^/ \n]+)$/) ||
-        line.match(/cgroup:[^ ]+\/([^/ ]+)\.service/);
-      if (cgroupMatch) {
+      let cgroupMatch = line.match(/cgroup:[^ ]+\/([^/ ]+)\.service/);
+      if (cgroupMatch && !cgroupMatch[1].startsWith("user@")) {
         processName = cgroupMatch[1]
           .replace(/\.service$/, "")
           .replace(/^system-/, "");
         processName =
           processName.charAt(0).toUpperCase() + processName.slice(1);
-      } else {
-        let uidMatch = line.match(/uid:(\d+)/);
-        if (uidMatch) {
-          let user = uidMap[uidMatch[1]] || uidMatch[1];
-          processName = `User: ${user}`;
-        }
       }
     }
 
@@ -130,8 +158,12 @@ function parseSsOutput(output, uidMap) {
       processName = "Docker";
     }
 
-    let uidMatch = line.match(/uid:(\d+)/);
-    let user = uidMatch ? uidMap[uidMatch[1]] || uidMatch[1] : "-";
+    let uid = uidByPort[port];
+    if (uid === undefined) {
+      let uidMatch = line.match(/uid:(\d+)/);
+      if (uidMatch) uid = uidMatch[1];
+    }
+    let user = uid !== undefined ? uidMap[uid] || uid : "-";
 
     let isLocal =
       address.startsWith("127.") ||
