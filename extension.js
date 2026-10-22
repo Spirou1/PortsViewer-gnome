@@ -1,4 +1,3 @@
-/* extension.js */
 import GObject from "gi://GObject";
 import St from "gi://St";
 import Clutter from "gi://Clutter";
@@ -66,7 +65,7 @@ const PortsIndicator = GObject.registerClass(
       try {
         ports = await getActiveDevPorts(cancellable);
       } catch (e) {
-        
+
       }
 
       this._isScanning = false;

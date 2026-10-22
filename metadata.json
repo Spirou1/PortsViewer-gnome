@@ -1,6 +1,6 @@
 {
   "name": "Ports Monitor",
-  "description": "Simple extension that lets the user see which ports are being used",
+  "description": "Simple extension that lets the user see which ports are being used.\n\nIt lists active listening ports with the owning process, PID and user. You can copy a PID by clicking on the icon next to it!",
   "uuid": "portsviewer@enzospironelli.com.br",
   "url": "https://github.com/Spirou1/PortsViewer-gnome",
   "shell-version": [
