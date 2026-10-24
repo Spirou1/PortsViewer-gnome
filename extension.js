@@ -182,11 +182,20 @@ const PortsIndicator = GObject.registerClass(
         activate: false,
         reactive: false,
       });
-      let label = new St.Label({
-        text: `✓ PID ${pid} copied`,
+
+      let feedbackBox = new St.BoxLayout({
         style_class: "port-copy-feedback",
       });
-      this._feedbackItem.add_child(label);
+      feedbackBox.add_child(
+        new St.Icon({
+          icon_name: "object-select-symbolic",
+          icon_size: 12,
+          style_class: "port-copy-feedback-icon",
+        }),
+      );
+      feedbackBox.add_child(new St.Label({ text: `PID ${pid} copied` }));
+
+      this._feedbackItem.add_child(feedbackBox);
       this._portsSection.addMenuItem(this._feedbackItem);
     }
 
